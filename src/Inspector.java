@@ -2,6 +2,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Vector;
 
 public class Inspector {
 	/* TODO
@@ -9,51 +10,58 @@ public class Inspector {
 	 * setAccessible for private/protected/etc stuff
 	 * 
 	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+	public void inspect(Object obj, boolean recursive){
+		Vector objects = new Vector();
+		Class reflectionClass = obj.getClass();
+		
+		// Inspect current class
+		getClassName(reflectionClass);
+		getSuperclassName(reflectionClass);
+		getInterfaceNames(reflectionClass);
+		getClassMethods(reflectionClass);
+		getClassFields(reflectionClass);
+		getClassFieldsValues(reflectionClass);
+		
+		// Inspect recursively (if recursive set to true)
+		if (recursive){
+			
+		}
 	}
 	
 	// Get the name of the class
-	public String getClassName(Class classInput){
-		Class reflectionClass = classInput.getClass();
-		String className = reflectionClass.getName();
+	public void getClassName(Class reflectClass){
+		String className = reflectClass.getName();
 		System.out.println("Class Name: " + className);
-		return className;
 	}
 	
 	// Get the name of the superclass
-	public String getSuperclassName(Class classInput){
-		Class reflectionClass = classInput.getSuperclass();
-		String superClassName = reflectionClass.getName();
+	public void getSuperclassName(Class reflectClass){
+		Class reflectionClassSuper = reflectClass.getSuperclass();
+		String superClassName = reflectionClassSuper.getName();
 		System.out.println("Superclass Name: " + superClassName);
-		return null;
 	}
 	
 	// Get the name of the interfaces
-	public String getInterfaceNames(Class classInput){
-		Class reflectionClass = classInput.getClass();
-		Class[] interfaces = reflectionClass.getInterfaces();
+	public void getInterfaceNames(Class reflectClass){
+		Class[] interfaces = reflectClass.getInterfaces();
 		
 		for(Class classInterface : interfaces){
 			System.out.println("Interface Name: " + classInterface.getName());
 		}
-		return null;
 	}
 	
 	// Get the methods in class and their info
-	public String getClassMethods(Class classInput){
+	public void getClassMethods(Class reflectClass){
 		// Return the following:
 			// Name
 			// Exceptions thrown
 			// Parameter Type
 			// Return Type
 			// Modifiers
-		Class reflectionClass = classInput.getClass();
-		Method[] classMethods = reflectionClass.getDeclaredMethods();
+		Method[] classMethods = reflectClass.getDeclaredMethods();
 		
 		for (Method classMethod : classMethods){
-			
+			classMethod.setAccessible(true);
 			// Get method name 
 			String methodName = classMethod.getName();
 			System.out.println("Method name: " + methodName);
@@ -80,18 +88,16 @@ public class Inspector {
 			int methodModifiers = classMethod.getModifiers();
 			System.out.println("\tModifiers: " + Modifier.toString(methodModifiers));
 		}
-		return null;
 	}
 	
 	// Get the constructors in class and their info
-	public String getClassConstructors(Class classInput){
-		// Return the following:
+	public String getClassConstructors(Class reflectClass){
+		// Print the following:
 			// Parameter Types
 			// Modifiers
 		
-		Class reflectionClass = classInput.getClass();
 		// Get all constructors 
-		Constructor[] classConstructors = reflectionClass.getDeclaredConstructors();
+		Constructor[] classConstructors = reflectClass.getDeclaredConstructors();
 		
 		for (Constructor classConstructor : classConstructors){
 			// Get Constructor Name
@@ -113,15 +119,16 @@ public class Inspector {
 	}
 	
 	// Get the fields in the class and their info
-	public String getClassFields(Class classInput){
-		// Return the following:
+	public void getClassFields(Class reflectClass){
+		// Print the following:
 			// Type
 			// Modifiers
-		Class reflectionClass = classInput.getClass();
+
 		// Get all fields (declared)
-		Field[] classFields = reflectionClass.getDeclaredFields();
+		Field[] classFields = reflectClass.getDeclaredFields();
 		
 		for (Field classField : classFields){
+			classField.setAccessible(true);
 			// Get Field Name
 			String fieldName = classField.getName();
 			System.out.println("Field Name: "+ fieldName);
@@ -133,27 +140,26 @@ public class Inspector {
 			// Get Field Modifiers
 			int fieldModifiers = classField.getModifiers();
 			System.out.println("\tField Modifiers: "+ Modifier.toString(fieldModifiers));
-		}	
-		return null; 
+		}	 
 	}
 	
 	// Get the values of the fields within the class
-	public String getClassFieldsValues(Class classInput){
-		// Return current value of each field
-		Class reflectionClass = classInput.getClass();
+	public void getClassFieldsValues(Class reflectClass){
+		// Print current value of each field
+
 		// Get all fields (declared)
-		Field[] classFields = reflectionClass.getDeclaredFields();
+		Field[] classFields = reflectClass.getDeclaredFields();
 		
 		for (Field classField : classFields){
+			classField.setAccessible(true);
 			// Get Field Name
 			String fieldName = classField.getName();
 			System.out.println("Field Name: "+ fieldName);
 			
 			// Get Field Value
-			classField.setAccessible(true);
 			Object fieldValue = null;
 			try {
-				fieldValue = classField.get(Class.forName(classInput.getName()).newInstance());
+				fieldValue = classField.get(Class.forName(reflectClass.getName()).newInstance());
 			} catch (IllegalArgumentException | IllegalAccessException | InstantiationException
 					| ClassNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -161,7 +167,6 @@ public class Inspector {
 			}
 			System.out.println("\tField Value: " + fieldValue);;
 		}	
-		return null;
 	}
 	
 }
