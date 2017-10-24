@@ -1,4 +1,5 @@
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class Inspector {
@@ -48,7 +49,7 @@ public class Inspector {
 			// Return Type
 			// Modifiers
 		Class reflectionClass = classInput.getClass();
-		Method[] classMethods = reflectionClass.getMethods();
+		Method[] classMethods = reflectionClass.getDeclaredMethods();
 		
 		for (Method classMethod : classMethods){
 			
@@ -89,7 +90,7 @@ public class Inspector {
 		
 		Class reflectionClass = classInput.getClass();
 		// Get all constructors 
-		Constructor[] classConstructors = reflectionClass.getConstructors();
+		Constructor[] classConstructors = reflectionClass.getDeclaredConstructors();
 		
 		for (Constructor classConstructor : classConstructors){
 			// Get Constructor Name
@@ -116,7 +117,22 @@ public class Inspector {
 			// Type
 			// Modifiers
 		Class reflectionClass = classInput.getClass();
+		// Get all fields (declared)
+		Field[] classFields = reflectionClass.getDeclaredFields();
 		
+		for (Field classField : classFields){
+			// Get Field Name
+			String fieldName = classField.getName();
+			System.out.println("Field Name: "+ fieldName);
+			
+			// Get Field Type
+			Class fieldType = classField.getType();
+			System.out.println("\tField Type: " + fieldType);
+			
+			// Get Field Modifiers
+			int fieldModifiers = classField.getModifiers();
+			System.out.println("\tField Modifiers: "+fieldModifiers);
+		}	
 		return null; 
 	}
 	
