@@ -1,6 +1,7 @@
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 public class Inspector {
 	/* TODO
@@ -77,7 +78,7 @@ public class Inspector {
 			
 			// Get Modifiers
 			int methodModifiers = classMethod.getModifiers();
-			System.out.println("\tModifiers: " + methodModifiers);
+			System.out.println("\tModifiers: " + Modifier.toString(methodModifiers));
 		}
 		return null;
 	}
@@ -106,7 +107,7 @@ public class Inspector {
 			
 			// Get Modifiers
 			int methodModifiers = classConstructor.getModifiers();
-			System.out.println("\tModifiers: " + methodModifiers);
+			System.out.println("\tModifiers: " + Modifier.toString(methodModifiers));
 		}
 		return null;
 	}
@@ -131,14 +132,35 @@ public class Inspector {
 			
 			// Get Field Modifiers
 			int fieldModifiers = classField.getModifiers();
-			System.out.println("\tField Modifiers: "+fieldModifiers);
+			System.out.println("\tField Modifiers: "+ Modifier.toString(fieldModifiers));
 		}	
 		return null; 
 	}
 	
 	// Get the values of the fields within the class
-	public String getClassFieldsValues(){
+	public String getClassFieldsValues(Class classInput){
 		// Return current value of each field
+		Class reflectionClass = classInput.getClass();
+		// Get all fields (declared)
+		Field[] classFields = reflectionClass.getDeclaredFields();
+		
+		for (Field classField : classFields){
+			// Get Field Name
+			String fieldName = classField.getName();
+			System.out.println("Field Name: "+ fieldName);
+			
+			// Get Field Value
+			classField.setAccessible(true);
+			Object fieldValue = null;
+			try {
+				fieldValue = classField.get(Class.forName(classInput.getName()).newInstance());
+			} catch (IllegalArgumentException | IllegalAccessException | InstantiationException
+					| ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("\tField Value: " + fieldValue);;
+		}	
 		return null;
 	}
 	
