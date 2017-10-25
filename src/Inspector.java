@@ -3,8 +3,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Vector;
+import java.lang.reflect.Array;
 
 public class Inspector {
+	public Inspector() { }
 	/* TODO
 	 * 
 	 * setAccessible for private/protected/etc stuff
@@ -13,14 +15,16 @@ public class Inspector {
 	public void inspect(Object obj, boolean recursive){
 		Vector objects = new Vector();
 		Class reflectionClass = obj.getClass();
+		System.out.println("Reflection class: " + reflectionClass);
 		
+		System.out.println("inside inspector: " + obj + " (recursive = "+recursive+")");
 		// Inspect current class
 		getClassName(reflectionClass);
 		getSuperclassName(reflectionClass);
 		getInterfaceNames(reflectionClass);
 		getClassMethods(reflectionClass);
 		getClassFields(reflectionClass);
-		getClassFieldsValues(reflectionClass);
+		getClassFieldsValues(reflectionClass, obj, recursive);
 		
 		// Inspect recursively (if recursive set to true)
 		if (recursive){
@@ -58,8 +62,9 @@ public class Inspector {
 			// Parameter Type
 			// Return Type
 			// Modifiers
+		System.out.println("Inside get methods");
 		Method[] classMethods = reflectClass.getDeclaredMethods();
-		
+		System.out.println("classMethods length = " + classMethods.length);
 		for (Method classMethod : classMethods){
 			classMethod.setAccessible(true);
 			// Get method name 
@@ -144,7 +149,7 @@ public class Inspector {
 	}
 	
 	// Get the values of the fields within the class
-	public void getClassFieldsValues(Class reflectClass){
+	public void getClassFieldsValues(Class reflectClass, Object obj, boolean recursive){
 		// Print current value of each field
 
 		// Get all fields (declared)
@@ -156,16 +161,57 @@ public class Inspector {
 			String fieldName = classField.getName();
 			System.out.println("Field Name: "+ fieldName);
 			
+			// Check if field is an array
+			Class fieldType = classField.getType();
+			if (fieldType.isArray()){
+				
+				Class arrType = fieldType.getComponentType();
+				System.out.println("ArrType = "+arrType);
+				
+				if(!arrType.isPrimitive()){
+					Object arrValues = null;
+					try {
+						arrValues = classField.get(obj);
+						System.out.println("Array Reference value = " +arrValues);
+						int length = Array.getLength(arrValues);
+						System.out.println("Length: " + length);
+						
+						
+						for (int i = 0; i < length; i++) {
+							if (recursive){
+								System.out.println("Array element value: " +arrValues.getClass().getName());
+								  Class cls = Class.forName(arrType.getName());
+					                Object object = cls.newInstance();
+					                System.out.println("Object  = " + object);
+								inspect(object, recursive);
+							}
+						    //System.out.println(Array.get(arrValues, i));
+							System.out.println(" _______________________ ");
+						}
+						
+					} catch (IllegalArgumentException | IllegalAccessException | ClassNotFoundException | InstantiationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} 
+					System.out.println("Array value: " + arrValues);
+				}
+
+			}
+			if (!fieldType.isPrimitive()){
+				// The fieldType is an object
+				
+			}else{
+				
+			}
 			// Get Field Value
 			Object fieldValue = null;
 			try {
-				fieldValue = classField.get(Class.forName(reflectClass.getName()).newInstance());
-			} catch (IllegalArgumentException | IllegalAccessException | InstantiationException
-					| ClassNotFoundException e) {
+				fieldValue = classField.get(obj); 
+			} catch (IllegalArgumentException | IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println("\tField Value: " + fieldValue);;
+			System.out.println("\tField Value: " + fieldValue);
 		}	
 	}
 	
