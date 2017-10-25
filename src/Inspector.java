@@ -2,6 +2,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.lang.reflect.Array;
 
@@ -12,24 +13,28 @@ public class Inspector {
 	 * setAccessible for private/protected/etc stuff
 	 * 
 	 */
+	public static ArrayList<String> recursedClasses = new ArrayList<String>();
+	public static ArrayList<String> recursedSuperClasses = new ArrayList<String>();
+	
+	
 	public void inspect(Object obj, boolean recursive){
-		Vector objects = new Vector();
 		Class reflectionClass = obj.getClass();
 		System.out.println("Reflection class: " + reflectionClass);
 		
 		System.out.println("inside inspector: " + obj + " (recursive = "+recursive+")");
 		// Inspect current class
 		getClassName(reflectionClass);
-		getSuperclassName(reflectionClass);
-		getInterfaceNames(reflectionClass);
-		getClassMethods(reflectionClass);
-		getClassFields(reflectionClass);
-		getClassFieldsValues(reflectionClass, obj, recursive);
+		getSuperclassName(reflectionClass, obj, recursive);
+		//getInterfaceNames(reflectionClass);
+		//getClassMethods(reflectionClass);
+		//getClassFields(reflectionClass);
+		//getClassFieldsValues(reflectionClass, obj, recursive);
 		
 		// Inspect recursively (if recursive set to true)
 		if (recursive){
 			
 		}
+		//recursedClasses.clear();
 	}
 	
 	// Get the name of the class
@@ -39,10 +44,38 @@ public class Inspector {
 	}
 	
 	// Get the name of the superclass
-	public void getSuperclassName(Class reflectClass){
+	public void getSuperclassName(Class reflectClass, Object obj, boolean recursive){
+//		Class reflectionClassSuper = reflectClass.getSuperclass();
+//		String superClassName = reflectionClassSuper.getName();
+//		System.out.println("Superclass Name: " + superClassName);
+//		System.out.println("Subscript: " + superClassName.substring(0,5));
+//		String subSuper = superClassName.substring(0,5);
+//		if(!recursedSuperClasses.contains(superClassName) && subSuper.equals("Class") ){
+//			if(!reflectionClassSuper.getName().equals("java.lang.Object")){
+//				recursedSuperClasses.add(superClassName);
+//				System.out.println("---------Traversing superclass----------");
+//				//Object object = reflectionClassSuper.newInstance(obj);
+//				inspect(reflectionClassSuper, recursive);
+//				//System.out.println("New superclass: " + reflectionClassSuper.getSuperclass().getSuperclass().getName());
+//			}
+//		}else{
+//			
+//		}
 		Class reflectionClassSuper = reflectClass.getSuperclass();
-		String superClassName = reflectionClassSuper.getName();
-		System.out.println("Superclass Name: " + superClassName);
+		
+		// Traverse through the hierarchy of superclasses 
+		while (reflectionClassSuper != null) {
+			System.out.println("Superclass: "+reflectionClassSuper.getName());
+			System.out.println("----------- Traversing superclass: " + reflectionClassSuper.getName()+" ------------");
+			getInterfaceNames(reflectionClassSuper);
+			getClassConstructors(reflectionClassSuper);
+			getClassMethods(reflectionClassSuper);
+			getClassFields(reflectionClassSuper);
+			getClassFieldsValues(reflectionClassSuper, obj, recursive);
+			System.out.println("----------- End of traversal of superclass: " + reflectionClassSuper.getName()+" ------------");
+			reflectionClassSuper = reflectionClassSuper.getSuperclass();
+		  
+		}
 	}
 	
 	// Get the name of the interfaces
@@ -96,7 +129,7 @@ public class Inspector {
 	}
 	
 	// Get the constructors in class and their info
-	public String getClassConstructors(Class reflectClass){
+	public void getClassConstructors(Class reflectClass){
 		// Print the following:
 			// Parameter Types
 			// Modifiers
@@ -120,7 +153,6 @@ public class Inspector {
 			int methodModifiers = classConstructor.getModifiers();
 			System.out.println("\tModifiers: " + Modifier.toString(methodModifiers));
 		}
-		return null;
 	}
 	
 	// Get the fields in the class and their info
@@ -166,52 +198,82 @@ public class Inspector {
 			if (fieldType.isArray()){
 				
 				Class arrType = fieldType.getComponentType();
-				System.out.println("ArrType = "+arrType);
+				System.out.println("\tArrType = "+arrType);
 				
 				if(!arrType.isPrimitive()){
 					Object arrValues = null;
 					try {
 						arrValues = classField.get(obj);
-						System.out.println("Array Reference value = " +arrValues);
+						System.out.println("\tArray Reference value = " +arrValues);
 						int length = Array.getLength(arrValues);
-						System.out.println("Length: " + length);
+						System.out.println("\tLength: " + length +"\n");
 						
 						
 						for (int i = 0; i < length; i++) {
 							if (recursive){
-								System.out.println("Array element value: " +arrValues.getClass().getName());
-								  Class cls = Class.forName(arrType.getName());
-					                Object object = cls.newInstance();
-					                System.out.println("Object  = " + object);
-								inspect(object, recursive);
+								Object x = Array.get(arrValues, i);
+								System.out.println("\tArray value: " + i + " " + x);
+//								System.out.println("Array element value: " +arrValues);
+//								  Class cls = Class.forName(arrType.getName());
+//					                Object object = cls.newInstance();
+//					                System.out.println("Object  = " + object);
+								//inspect(arr, recursive);
+							}else{
+								// Print reference values & identity hashcode
+								System.out.println("\tField Reference Value: "+ arrValues.getClass().getName());
+								System.out.println("\tField Identity HashCode: "+ System.identityHashCode(arrValues));
 							}
-						    //System.out.println(Array.get(arrValues, i));
-							System.out.println(" _______________________ ");
-						}
-						
-					} catch (IllegalArgumentException | IllegalAccessException | ClassNotFoundException | InstantiationException e) {
+							System.out.println("        ________________ ");
+						}			
+					} catch (IllegalArgumentException | IllegalAccessException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} 
-					System.out.println("Array value: " + arrValues);
 				}
 
-			}
-			if (!fieldType.isPrimitive()){
-				// The fieldType is an object
-				
 			}else{
-				
+				// Not an array
+				// Get Field Value
+
+				Object fieldValue = null;
+				try {
+					System.out.println("Class field = " +classField);
+					fieldValue = classField.get(obj);
+					if(fieldValue != null){
+						System.out.println("\tField value: " + fieldType);
+						System.out.println("\tField value is prim?: " + fieldType.isPrimitive());
+						if(!fieldType.isPrimitive()){
+							// If not primitive, then object. So use recursion
+							System.out.println("Classes looked at BEFORE: " + recursedClasses.toString());
+							if(!recursedClasses.contains(fieldValue.getClass().getName().toString())){
+								recursedClasses.add(fieldValue.getClass().getName().toString());
+								System.out.println("Classes looked at AFTER ADD: " + recursedClasses.toString());
+								System.out.println("\t\t>>> Doing Recursion on : " + fieldValue);
+								if (recursive){
+									inspect(fieldValue, recursive);
+								}else{
+									// No recursion, so only print 
+									System.out.println("\tField Reference Value: "+ fieldValue.getClass().getName());
+									System.out.println("\tField Identity HashCode: "+ System.identityHashCode(fieldValue));
+									
+								}
+								
+								//System.out.println("Do we ever get here? <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");
+								//recursedClasses.remove(fieldValue.getClass());
+							}
+						}else{
+							System.out.println("\tField Value: " + fieldValue);
+						}
+					}else{
+						System.out.println("\tField Value: Null");
+					}
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				recursedClasses.clear();
+				//System.out.println("\tField Value: " + fieldValue);
 			}
-			// Get Field Value
-			Object fieldValue = null;
-			try {
-				fieldValue = classField.get(obj); 
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			System.out.println("\tField Value: " + fieldValue);
 		}	
 	}
 	
