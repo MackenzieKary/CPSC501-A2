@@ -25,7 +25,7 @@ public class Inspector {
 		// Inspect current class
 		getClassName(reflectionClass);
 		getSuperclassName(reflectionClass, obj, recursive);
-		//getInterfaceNames(reflectionClass);
+		getInterfaceNames(reflectionClass, obj, recursive);
 		//getClassMethods(reflectionClass);
 		//getClassFields(reflectionClass);
 		//getClassFieldsValues(reflectionClass, obj, recursive);
@@ -45,45 +45,36 @@ public class Inspector {
 	
 	// Get the name of the superclass
 	public void getSuperclassName(Class reflectClass, Object obj, boolean recursive){
-//		Class reflectionClassSuper = reflectClass.getSuperclass();
-//		String superClassName = reflectionClassSuper.getName();
-//		System.out.println("Superclass Name: " + superClassName);
-//		System.out.println("Subscript: " + superClassName.substring(0,5));
-//		String subSuper = superClassName.substring(0,5);
-//		if(!recursedSuperClasses.contains(superClassName) && subSuper.equals("Class") ){
-//			if(!reflectionClassSuper.getName().equals("java.lang.Object")){
-//				recursedSuperClasses.add(superClassName);
-//				System.out.println("---------Traversing superclass----------");
-//				//Object object = reflectionClassSuper.newInstance(obj);
-//				inspect(reflectionClassSuper, recursive);
-//				//System.out.println("New superclass: " + reflectionClassSuper.getSuperclass().getSuperclass().getName());
-//			}
-//		}else{
-//			
-//		}
 		Class reflectionClassSuper = reflectClass.getSuperclass();
 		
 		// Traverse through the hierarchy of superclasses 
 		while (reflectionClassSuper != null) {
 			System.out.println("Superclass: "+reflectionClassSuper.getName());
 			System.out.println("----------- Traversing superclass: " + reflectionClassSuper.getName()+" ------------");
-			getInterfaceNames(reflectionClassSuper);
+			getInterfaceNames(reflectionClassSuper, obj, recursive);
 			getClassConstructors(reflectionClassSuper);
 			getClassMethods(reflectionClassSuper);
 			getClassFields(reflectionClassSuper);
 			getClassFieldsValues(reflectionClassSuper, obj, recursive);
 			System.out.println("----------- End of traversal of superclass: " + reflectionClassSuper.getName()+" ------------");
-			reflectionClassSuper = reflectionClassSuper.getSuperclass();
-		  
+			reflectionClassSuper = reflectionClassSuper.getSuperclass();		  
 		}
 	}
 	
 	// Get the name of the interfaces
-	public void getInterfaceNames(Class reflectClass){
-		Class[] interfaces = reflectClass.getInterfaces();
+	public void getInterfaceNames(Class reflectClass, Object obj, boolean recursive){
+		Class[] interfaces = reflectClass.getInterfaces();	
 		
+		// Traverse through the hierarchy of interfaces
 		for(Class classInterface : interfaces){
 			System.out.println("Interface Name: " + classInterface.getName());
+			System.out.println("----------- Traversing Interface: " + classInterface.getName()+" ------------");
+			getInterfaceNames(classInterface, obj, recursive);
+			getClassConstructors(classInterface);
+			getClassMethods(classInterface);
+			getClassFields(classInterface);
+			getClassFieldsValues(classInterface, obj, recursive);
+			System.out.println("----------- End of traversal of superclass: " + classInterface.getName()+" ------------");
 		}
 	}
 	
