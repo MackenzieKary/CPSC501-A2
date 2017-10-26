@@ -17,20 +17,56 @@ public class Inspector {
 	public static ArrayList<String> recursedSuperClasses = new ArrayList<String>();
 	
 	
-	public void inspect(Object obj, boolean recursive){
+	public void inspect(Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		
 		// Check if object passed in is an object
+		// NOTE: There is an array of type ClassA or whatever, but they are NOT instantiated, so they should be null, no?
+//		if (obj.getClass().isArray()){
+//			System.out.println("Is an array");
+//			int length = Array.getLength(obj);
+//			System.out.println("Array length:" + length);
+//		    for (int i = 0; i < length; i ++) {
+//		    	System.out.println("Going into first array element");
+//		        Object arrayElement = Array.get(obj, i);
+//		        System.out.println("Array element = " +arrayElement.toString());
+//		        inspect(arrayElement, recursive);
+//		    }
 		if (obj.getClass().isArray()){
-			System.out.println("Is an array");
+			System.out.println("Array = "+ obj.getClass());
 			int length = Array.getLength(obj);
-			System.out.println("Array length:" + length);
-		    for (int i = 0; i < length; i ++) {
-		    	System.out.println("Going into first array element");
-		        Object arrayElement = Array.get(obj, i);
-		        System.out.println("Array element = " +arrayElement.toString());
-		        //inspect(arrayElement, recursive);
-		    }	
+		    for (int i = 0; i < 1; i ++) {		// Change back to i < length later
+
+		    	System.out.println("PRINTING i: " + i);
+		    	Class componentType = obj.getClass().getComponentType();
+		    	System.out.println("Component type: " + componentType);
+		    	
+		    	String test =  componentType.getName();
+		    	String lastWord = test.substring(test.lastIndexOf(" ")+1);
+		    	System.out.println("Last word = " + lastWord);
+//		    	String finalWord = lastWord.substring(2, lastWord.length());
+//		    	System.out.println("Final word = " + finalWord);
+//		    	String finalWorddef = finalWord.substring(0, lastWord.length()-1);
+//		    	System.out.println("FINAL word = " + finalWorddef);
+		    	//Class clazz = Class.forName("[L" + lastWord + ";");
+		    	System.out.println("[L"+lastWord);
+		    	Class clazz = Class.forName(lastWord);
+		    	//ClassLoader classLoader = componentType.getClassLoader();
+		    	System.out.println("clazz = " + clazz.getClass());
+		    	
+		    	
+		    	
+				System.out.println("Object = " + clazz);
+		    	System.out.println("Obj here= " + obj);
+		    	getClassName(clazz);
+				getSuperclassName(clazz, obj, recursive);
+				getInterfaceNames(clazz, obj, recursive);
+				getClassMethods(clazz);
+				getClassFields(clazz);
+				getClassFieldsValues(clazz, obj, recursive);
+
+		    }
 		}else{
+			System.out.println("Obj = " + obj);
 			Class reflectionClass = obj.getClass();
 			System.out.println("Reflection class: " + reflectionClass);
 			
@@ -52,7 +88,7 @@ public class Inspector {
 	}
 	
 	// Get the name of the superclass
-	public void getSuperclassName(Class reflectClass, Object obj, boolean recursive){
+	public void getSuperclassName(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		Class reflectionClassSuper = reflectClass.getSuperclass();
 		
 		// Traverse through the hierarchy of superclasses 
@@ -70,7 +106,7 @@ public class Inspector {
 	}
 	
 	// Get the name of the interfaces
-	public void getInterfaceNames(Class reflectClass, Object obj, boolean recursive){
+	public void getInterfaceNames(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		Class[] interfaces = reflectClass.getInterfaces();	
 		
 		// Traverse through the hierarchy of interfaces
@@ -181,7 +217,7 @@ public class Inspector {
 	}
 	
 	// Get the values of the fields within the class
-	public void getClassFieldsValues(Class reflectClass, Object obj, boolean recursive){
+	public void getClassFieldsValues(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		// Print current value of each field
 
 		// Get all fields (declared)
@@ -203,7 +239,25 @@ public class Inspector {
 				if(!arrType.isPrimitive()){
 					// If array is not primitive, then it is objects. (Likely calling another class)
 					Object arrValues = null;
+					if (obj.getClass().isArray()){
+						int length = Array.getLength(obj);
+					    for (int i = 0; i < 1; i ++) {		// Change back to i < length later
+
+					    	
+					    	Class componentType = obj.getClass().getComponentType();
+			
+					    	
+					    	String test =  componentType.getName();
+					    	String lastWord = test.substring(test.lastIndexOf(" ")+1);
+				
+
+					    	Class clazz = Class.forName(lastWord);
+					    	obj = clazz.newInstance();
+
+					    }
+					}
 					try {
+						System.out.println("####################### OBJECT = " + obj);
 						arrValues = classField.get(obj);
 						System.out.println("\tArray Reference value = " +arrValues);
 						int length = Array.getLength(arrValues);
