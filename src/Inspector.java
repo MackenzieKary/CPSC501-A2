@@ -15,76 +15,51 @@ public class Inspector {
 	 */
 	public static ArrayList<String> recursedClasses = new ArrayList<String>();
 	public static ArrayList<String> recursedSuperClasses = new ArrayList<String>();
-	
+	public String className = "";
 	
 	public void inspect(Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		
-		// Check if object passed in is an object
-		// NOTE: There is an array of type ClassA or whatever, but they are NOT instantiated, so they should be null, no?
-//		if (obj.getClass().isArray()){
-//			System.out.println("Is an array");
-//			int length = Array.getLength(obj);
-//			System.out.println("Array length:" + length);
-//		    for (int i = 0; i < length; i ++) {
-//		    	System.out.println("Going into first array element");
-//		        Object arrayElement = Array.get(obj, i);
-//		        System.out.println("Array element = " +arrayElement.toString());
-//		        inspect(arrayElement, recursive);
-//		    }
+		// Check if object passed in is an array
 		if (obj.getClass().isArray()){
-			System.out.println("Array = "+ obj.getClass());
 			int length = Array.getLength(obj);
-		    for (int i = 0; i < 1; i ++) {		// Change back to i < length later
-
-		    	System.out.println("PRINTING i: " + i);
-		    	Class componentType = obj.getClass().getComponentType();
-		    	System.out.println("Component type: " + componentType);
-		    	
-		    	String test =  componentType.getName();
-		    	String lastWord = test.substring(test.lastIndexOf(" ")+1);
-		    	System.out.println("Last word = " + lastWord);
-//		    	String finalWord = lastWord.substring(2, lastWord.length());
-//		    	System.out.println("Final word = " + finalWord);
-//		    	String finalWorddef = finalWord.substring(0, lastWord.length()-1);
-//		    	System.out.println("FINAL word = " + finalWorddef);
-		    	//Class clazz = Class.forName("[L" + lastWord + ";");
-		    	System.out.println("[L"+lastWord);
-		    	Class clazz = Class.forName(lastWord);
-		    	//ClassLoader classLoader = componentType.getClassLoader();
-		    	System.out.println("clazz = " + clazz.getClass());
-		    	
-		    	
-		    	
-				System.out.println("Object = " + clazz);
-		    	System.out.println("Obj here= " + obj);
-		    	getClassName(clazz);
-				getSuperclassName(clazz, obj, recursive);
-				getInterfaceNames(clazz, obj, recursive);
-				getClassMethods(clazz);
-				getClassFields(clazz);
-				getClassFieldsValues(clazz, obj, recursive);
-
+		    for (int i = 0; i < length; i ++) {
+		    	Object x = Array.get(obj, i);
+				if (x == null){
+					// Null when an array of objects has been created, but not yet instantiated 
+					System.out.println("\tArray value for index " + i + " = " + x);
+				}else{
+					inspect(x, recursive);
+				}
+		        System.out.println("\tArray element = " +obj.toString());
+		        //inspect(arrayElement, recursive);
 		    }
 		}else{
-			System.out.println("Obj = " + obj);
 			Class reflectionClass = obj.getClass();
-			System.out.println("Reflection class: " + reflectionClass);
 			
-			System.out.println("inside inspector: " + obj + " (recursive = "+recursive+")");
+			System.out.println("Inspecting Object: " + obj + " (recursive = "+recursive+")");
 			// Inspect current class
 			getClassName(reflectionClass);
 			getSuperclassName(reflectionClass, obj, recursive);
 			getInterfaceNames(reflectionClass, obj, recursive);
+			getClassConstructors(reflectionClass);
 			getClassMethods(reflectionClass);
 			getClassFields(reflectionClass);
 			getClassFieldsValues(reflectionClass, obj, recursive);
 		}
 	}
 	
+	public void setClassName(String cName){
+		className = cName;
+	}
+	public String getClassName(){
+		return className;
+	}
+	
 	// Get the name of the class
 	public void getClassName(Class reflectClass){
 		String className = reflectClass.getName();
 		System.out.println("Class Name: " + className);
+		setClassName(className);
 	}
 	
 	// Get the name of the superclass
@@ -94,13 +69,13 @@ public class Inspector {
 		// Traverse through the hierarchy of superclasses 
 		while (reflectionClassSuper != null) {
 			System.out.println("Superclass: "+reflectionClassSuper.getName());
-			System.out.println("----------- Traversing superclass: " + reflectionClassSuper.getName()+" ------------");
+			System.out.println("\t>->->->->-> Traversing superclass: " + reflectionClassSuper.getName()+" >->->->->->");
 			getInterfaceNames(reflectionClassSuper, obj, recursive);
 			getClassConstructors(reflectionClassSuper);
 			getClassMethods(reflectionClassSuper);
 			getClassFields(reflectionClassSuper);
 			getClassFieldsValues(reflectionClassSuper, obj, recursive);
-			System.out.println("----------- End of traversal of superclass: " + reflectionClassSuper.getName()+" ------------");
+			System.out.println("\t<-<-<-<-<-< End of traversal of superclass: " + reflectionClassSuper.getName()+" <-<-<-<-<-<");
 			reflectionClassSuper = reflectionClassSuper.getSuperclass();		  
 		}
 	}
@@ -112,13 +87,13 @@ public class Inspector {
 		// Traverse through the hierarchy of interfaces
 		for(Class classInterface : interfaces){
 			System.out.println("Interface Name: " + classInterface.getName());
-			System.out.println("----------- Traversing Interface: " + classInterface.getName()+" ------------");
+			System.out.println("\t>>>>>>>>>>> Traversing Interface: " + classInterface.getName()+" >>>>>>>>>>>");
 			getInterfaceNames(classInterface, obj, recursive);
 			getClassConstructors(classInterface);
 			getClassMethods(classInterface);
 			getClassFields(classInterface);
 			getClassFieldsValues(classInterface, obj, recursive);
-			System.out.println("----------- End of traversal of superclass: " + classInterface.getName()+" ------------");
+			System.out.println("\t<<<<<<<<<<< End of traversal of superclass: " + classInterface.getName()+" <<<<<<<<<<<");
 		}
 	}
 	
@@ -132,7 +107,7 @@ public class Inspector {
 			// Modifiers
 		
 		Method[] classMethods = reflectClass.getDeclaredMethods();
-		System.out.println("----Methods below for class : "+ reflectClass.getName() +", number of total methods= "+classMethods.length);
+		System.out.println("-Methods below for class : "+ reflectClass.getName() +", number of total methods= "+classMethods.length);
 		for (Method classMethod : classMethods){
 			classMethod.setAccessible(true);
 			// Get method name 
@@ -161,7 +136,7 @@ public class Inspector {
 			int methodModifiers = classMethod.getModifiers();
 			System.out.println("\t\tModifiers: " + Modifier.toString(methodModifiers));
 		}
-		System.out.println("----Done looking at methods for class : "+ reflectClass.getName());
+		System.out.println("-Done looking at methods for class : "+ reflectClass.getName());
 	}
 	
 	// Get the constructors in class and their info
@@ -172,8 +147,8 @@ public class Inspector {
 		
 		// Get all constructors 
 		Constructor[] classConstructors = reflectClass.getDeclaredConstructors();
-		
 		for (Constructor classConstructor : classConstructors){
+			classConstructor.setAccessible(true);
 			// Get Constructor Name
 			String constructorName = classConstructor.getName();
 			System.out.println("Constructor Name: "+ constructorName);
@@ -199,21 +174,22 @@ public class Inspector {
 
 		// Get all fields (declared)
 		Field[] classFields = reflectClass.getDeclaredFields();
-		
+		System.out.println("\nField info below for: " + reflectClass);
 		for (Field classField : classFields){
 			classField.setAccessible(true);
 			// Get Field Name
 			String fieldName = classField.getName();
-			System.out.println("Field Name: "+ fieldName);
+			System.out.println("\tField Name: "+ fieldName);
 			
 			// Get Field Type
 			Class fieldType = classField.getType();
-			System.out.println("\tField Type: " + fieldType);
+			System.out.println("\t\tField Type: " + fieldType);
 			
 			// Get Field Modifiers
 			int fieldModifiers = classField.getModifiers();
-			System.out.println("\tField Modifiers: "+ Modifier.toString(fieldModifiers));
-		}	 
+			System.out.println("\t\tField Modifiers: "+ Modifier.toString(fieldModifiers));
+		}	
+		System.out.println("\nEnd of fields info for: " + reflectClass);
 	}
 	
 	// Get the values of the fields within the class
@@ -222,12 +198,12 @@ public class Inspector {
 
 		// Get all fields (declared)
 		Field[] classFields = reflectClass.getDeclaredFields();
-		
+		System.out.println("\nField values below for: " + reflectClass);
 		for (Field classField : classFields){
 			classField.setAccessible(true);
 			// Get Field Name
 			String fieldName = classField.getName();
-			System.out.println("Field Name: "+ fieldName);
+			System.out.println("\tField Name: "+ fieldName);
 			
 			// Check if field is an array
 			Class fieldType = classField.getType();
@@ -239,29 +215,10 @@ public class Inspector {
 				if(!arrType.isPrimitive()){
 					// If array is not primitive, then it is objects. (Likely calling another class)
 					Object arrValues = null;
-					if (obj.getClass().isArray()){
-						int length = Array.getLength(obj);
-					    for (int i = 0; i < 1; i ++) {		// Change back to i < length later
-
-					    	
-					    	Class componentType = obj.getClass().getComponentType();
-			
-					    	
-					    	String test =  componentType.getName();
-					    	String lastWord = test.substring(test.lastIndexOf(" ")+1);
-				
-
-					    	Class clazz = Class.forName(lastWord);
-					    	obj = clazz.newInstance();
-
-					    }
-					}
 					try {
-						System.out.println("####################### OBJECT = " + obj);
 						arrValues = classField.get(obj);
 						System.out.println("\tArray Reference value = " +arrValues);
 						int length = Array.getLength(arrValues);
-						System.out.println("\tLength: " + length +"\n");
 						
 						
 						for (int i = 0; i < length; i++) {
@@ -291,35 +248,29 @@ public class Inspector {
 
 			}else{
 				// Not an array
-				// Get Field Value
-				if (obj.getClass().isArray()){
-					int length = Array.getLength(obj);
-				    for (int i = 0; i < 1; i ++) {		// Change back to i < length later
-
-				    	
-				    	Class componentType = obj.getClass().getComponentType();
-		
-				    	
-				    	String test =  componentType.getName();
-				    	String lastWord = test.substring(test.lastIndexOf(" ")+1);
-			
-
-				    	Class clazz = Class.forName(lastWord);
-				    	obj = clazz.newInstance();
-
-				    }
-				}
+				// Get Field Value (might need to use recursion) 
 				Object fieldValue = null;
 				try {
 					fieldValue = classField.get(obj); 
 				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				System.out.println("\t\tField Value ("+className+"):" + fieldValue);
+				if (recursive){
+					if (fieldValue != null && !fieldValue.getClass().isPrimitive()){
+						// This code is responsible for recursing when a field is set to a class object. (Go into the class object)
+						if (Object.class.isAssignableFrom(classField.getType()) && !recursedClasses.contains(fieldType.getName()) ){
+							System.out.println("\t-------Field Value " + fieldName + " is a class object: "+fieldValue.getClass()+", RECURSING NOW");
+							recursedClasses.add(fieldType.getName());
+							inspect(fieldValue, recursive);
+							System.out.println("\t-------Done recursing class: " + fieldValue.getClass() +" for value: " + fieldName+" <-- Belonging to "+reflectClass+"\n\n");
+						}
+					}
+				}
 				recursedClasses.clear();
-				System.out.println("\tField Value: " + fieldValue);
 			}
 		}	
+		System.out.println("\nEnd of fields values for: " + reflectClass);
 	}
 	
 }
