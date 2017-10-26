@@ -18,23 +18,31 @@ public class Inspector {
 	
 	
 	public void inspect(Object obj, boolean recursive){
-		Class reflectionClass = obj.getClass();
-		System.out.println("Reflection class: " + reflectionClass);
 		
-		System.out.println("inside inspector: " + obj + " (recursive = "+recursive+")");
-		// Inspect current class
-		getClassName(reflectionClass);
-		getSuperclassName(reflectionClass, obj, recursive);
-		getInterfaceNames(reflectionClass, obj, recursive);
-		//getClassMethods(reflectionClass);
-		//getClassFields(reflectionClass);
-		//getClassFieldsValues(reflectionClass, obj, recursive);
-		
-		// Inspect recursively (if recursive set to true)
-		if (recursive){
+		// Check if object passed in is an object
+		if (obj.getClass().isArray()){
+			System.out.println("Is an array");
+			int length = Array.getLength(obj);
+			System.out.println("Array length:" + length);
+		    for (int i = 0; i < length; i ++) {
+		    	System.out.println("Going into first array element");
+		        Object arrayElement = Array.get(obj, i);
+		        System.out.println("Array element = " +arrayElement.toString());
+		        //inspect(arrayElement, recursive);
+		    }	
+		}else{
+			Class reflectionClass = obj.getClass();
+			System.out.println("Reflection class: " + reflectionClass);
 			
+			System.out.println("inside inspector: " + obj + " (recursive = "+recursive+")");
+			// Inspect current class
+			getClassName(reflectionClass);
+			getSuperclassName(reflectionClass, obj, recursive);
+			getInterfaceNames(reflectionClass, obj, recursive);
+			getClassMethods(reflectionClass);
+			getClassFields(reflectionClass);
+			getClassFieldsValues(reflectionClass, obj, recursive);
 		}
-		//recursedClasses.clear();
 	}
 	
 	// Get the name of the class
@@ -86,37 +94,38 @@ public class Inspector {
 			// Parameter Type
 			// Return Type
 			// Modifiers
-		System.out.println("Inside get methods");
+		
 		Method[] classMethods = reflectClass.getDeclaredMethods();
-		System.out.println("classMethods length = " + classMethods.length);
+		System.out.println("----Methods below for class : "+ reflectClass.getName() +", number of total methods= "+classMethods.length);
 		for (Method classMethod : classMethods){
 			classMethod.setAccessible(true);
 			// Get method name 
 			String methodName = classMethod.getName();
-			System.out.println("Method name: " + methodName);
+			System.out.println("\tMethod name: " + methodName);
 			
 			// Get Method Exception Types 
 			Class[] exceptions = classMethod.getExceptionTypes();
 			for (Class exception : exceptions){
 				String exceptionType = exception.getName();
-				System.out.println("\tException type: " + exceptionType);
+				System.out.println("\t\tException type: " + exceptionType);
 			}
 			
 			// Get Parameter Types
 			Class[] parameters = classMethod.getParameterTypes();
 			for (Class parameter : parameters){
 				String parameterType = parameter.getName();
-				System.out.println("\tParameter type: " + parameterType);
+				System.out.println("\t\tParameter type: " + parameterType);
 			}
 			
 			// Get Return Type
 			Class returnType = classMethod.getReturnType();
-			System.out.println("\tReturn Type: " + returnType);
+			System.out.println("\t\tReturn Type: " + returnType);
 			
 			// Get Modifiers
 			int methodModifiers = classMethod.getModifiers();
-			System.out.println("\tModifiers: " + Modifier.toString(methodModifiers));
+			System.out.println("\t\tModifiers: " + Modifier.toString(methodModifiers));
 		}
+		System.out.println("----Done looking at methods for class : "+ reflectClass.getName());
 	}
 	
 	// Get the constructors in class and their info
@@ -187,11 +196,12 @@ public class Inspector {
 			// Check if field is an array
 			Class fieldType = classField.getType();
 			if (fieldType.isArray()){
-				
+				// if it is an array, we need to figure out the type of array
 				Class arrType = fieldType.getComponentType();
 				System.out.println("\tArrType = "+arrType);
 				
 				if(!arrType.isPrimitive()){
+					// If array is not primitive, then it is objects. (Likely calling another class)
 					Object arrValues = null;
 					try {
 						arrValues = classField.get(obj);
@@ -203,12 +213,15 @@ public class Inspector {
 						for (int i = 0; i < length; i++) {
 							if (recursive){
 								Object x = Array.get(arrValues, i);
-								System.out.println("\tArray value: " + i + " " + x);
-//								System.out.println("Array element value: " +arrValues);
-//								  Class cls = Class.forName(arrType.getName());
-//					                Object object = cls.newInstance();
-//					                System.out.println("Object  = " + object);
-								//inspect(arr, recursive);
+								if (x == null){
+									// Null when an array of objects has been created, but not yet instantiated 
+									System.out.println("\tArray value for index " + i + " = " + x);
+								}else{
+									Class cls = Class.forName(arrType.getName());
+					                Object object = cls.newInstance();
+					                System.out.println("Object  = " + object);
+					                inspect(object, recursive);
+								}
 							}else{
 								// Print reference values & identity hashcode
 								System.out.println("\tField Reference Value: "+ arrValues.getClass().getName());
@@ -216,7 +229,7 @@ public class Inspector {
 							}
 							System.out.println("        ________________ ");
 						}			
-					} catch (IllegalArgumentException | IllegalAccessException e) {
+					} catch (IllegalArgumentException | IllegalAccessException | ClassNotFoundException | InstantiationException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} 
@@ -227,38 +240,7 @@ public class Inspector {
 				// Get Field Value
 
 				Object fieldValue = null;
-				try {
-					System.out.println("Class field = " +classField);
-					fieldValue = classField.get(obj);
-					if(fieldValue != null){
-						System.out.println("\tField value: " + fieldType);
-						System.out.println("\tField value is prim?: " + fieldType.isPrimitive());
-						if(!fieldType.isPrimitive()){
-							// If not primitive, then object. So use recursion
-							System.out.println("Classes looked at BEFORE: " + recursedClasses.toString());
-							if(!recursedClasses.contains(fieldValue.getClass().getName().toString())){
-								recursedClasses.add(fieldValue.getClass().getName().toString());
-								System.out.println("Classes looked at AFTER ADD: " + recursedClasses.toString());
-								System.out.println("\t\t>>> Doing Recursion on : " + fieldValue);
-								if (recursive){
-									inspect(fieldValue, recursive);
-								}else{
-									// No recursion, so only print 
-									System.out.println("\tField Reference Value: "+ fieldValue.getClass().getName());
-									System.out.println("\tField Identity HashCode: "+ System.identityHashCode(fieldValue));
-									
-								}
-								
-								//System.out.println("Do we ever get here? <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>");
-								//recursedClasses.remove(fieldValue.getClass());
-							}
-						}else{
-							System.out.println("\tField Value: " + fieldValue);
-						}
-					}else{
-						System.out.println("\tField Value: Null");
-					}
-				} catch (IllegalArgumentException | IllegalAccessException e) {
+				try {} catch (IllegalArgumentException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
