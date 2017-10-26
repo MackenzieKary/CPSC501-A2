@@ -292,14 +292,32 @@ public class Inspector {
 			}else{
 				// Not an array
 				// Get Field Value
+				if (obj.getClass().isArray()){
+					int length = Array.getLength(obj);
+				    for (int i = 0; i < 1; i ++) {		// Change back to i < length later
 
+				    	
+				    	Class componentType = obj.getClass().getComponentType();
+		
+				    	
+				    	String test =  componentType.getName();
+				    	String lastWord = test.substring(test.lastIndexOf(" ")+1);
+			
+
+				    	Class clazz = Class.forName(lastWord);
+				    	obj = clazz.newInstance();
+
+				    }
+				}
 				Object fieldValue = null;
-				try {} catch (IllegalArgumentException e) {
+				try {
+					fieldValue = classField.get(obj); 
+				} catch (IllegalArgumentException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				recursedClasses.clear();
-				//System.out.println("\tField Value: " + fieldValue);
+				System.out.println("\tField Value: " + fieldValue);
 			}
 		}	
 	}
