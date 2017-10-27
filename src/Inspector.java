@@ -15,7 +15,8 @@ public class Inspector {
 	 */
 	public static ArrayList<String> recursedClasses = new ArrayList<String>();
 	public static ArrayList<String> recursedSuperClasses = new ArrayList<String>();
-	public String className = "";
+	public String classNameToTest = "";
+	public String fieldValuesToTest = "";
 	
 	public void inspect(Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		
@@ -49,10 +50,16 @@ public class Inspector {
 	}
 	
 	public void setClassName(String cName){
-		className = cName;
+		classNameToTest = cName;
 	}
 	public String getClassName(){
-		return className;
+		return classNameToTest;
+	}
+	public void setFieldValues(String fValues){
+		fieldValuesToTest = fieldValuesToTest + " " +fValues;
+	}
+	public String getFieldValues(){
+		return fieldValuesToTest;
 	}
 	
 	// Get the name of the class
@@ -93,7 +100,7 @@ public class Inspector {
 			getClassMethods(classInterface);
 			getClassFields(classInterface);
 			getClassFieldsValues(classInterface, obj, recursive);
-			System.out.println("\t<<<<<<<<<<< End of traversal of superclass: " + classInterface.getName()+" <<<<<<<<<<<");
+			System.out.println("\t<<<<<<<<<<< End of traversal of interface: " + classInterface.getName()+" <<<<<<<<<<<");
 		}
 	}
 	
@@ -210,14 +217,14 @@ public class Inspector {
 			if (fieldType.isArray()){
 				// if it is an array, we need to figure out the type of array
 				Class arrType = fieldType.getComponentType();
-				System.out.println("\tArrType = "+arrType);
+				System.out.println("\t\tArrType = "+arrType);
 				
 				if(!arrType.isPrimitive()){
 					// If array is not primitive, then it is objects. (Likely calling another class)
 					Object arrValues = null;
 					try {
 						arrValues = classField.get(obj);
-						System.out.println("\tArray Reference value = " +arrValues);
+						System.out.println("\t\tArray Reference value = " +arrValues+"\n");
 						int length = Array.getLength(arrValues);
 						
 						
@@ -226,7 +233,7 @@ public class Inspector {
 								Object x = Array.get(arrValues, i);
 								if (x == null){
 									// Null when an array of objects has been created, but not yet instantiated 
-									System.out.println("\tArray value for index " + i + " = " + x);
+									System.out.println("\t\tArray value for index " + i + " = " + x);
 								}else{
 									Class cls = Class.forName(arrType.getName());
 					                Object object = cls.newInstance();
@@ -238,7 +245,7 @@ public class Inspector {
 								System.out.println("\tField Reference Value: "+ arrValues.getClass().getName());
 								System.out.println("\tField Identity HashCode: "+ System.identityHashCode(arrValues));
 							}
-							System.out.println("        ________________ ");
+							System.out.println("\t        ________________ ");
 						}			
 					} catch (IllegalArgumentException | IllegalAccessException | ClassNotFoundException | InstantiationException e) {
 						// TODO Auto-generated catch block
@@ -255,7 +262,8 @@ public class Inspector {
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
 				}
-				System.out.println("\t\tField Value ("+className+"):" + fieldValue);
+				//System.out.println("\t\tField Value ("+className+"): " + fieldValue); // Fix this, this should be the class that has those variables, not the type of variable 
+				setFieldValues(fieldValue.toString());
 				if (recursive){
 					if (fieldValue != null && !fieldValue.getClass().isPrimitive()){
 						// This code is responsible for recursing when a field is set to a class object. (Go into the class object)
