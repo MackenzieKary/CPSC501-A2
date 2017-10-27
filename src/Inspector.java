@@ -40,12 +40,7 @@ public class Inspector {
 			System.out.println("Inspecting Object: " + obj + " (recursive = "+recursive+")");
 			// Inspect current class
 			getClassName(reflectionClass);
-			getSuperclassName(reflectionClass, obj, recursive);
-			getInterfaceNames(reflectionClass, obj, recursive);
-			getClassConstructors(reflectionClass);
-			getClassMethods(reflectionClass);
-			getClassFields(reflectionClass);
-			getClassFieldsValues(reflectionClass, obj, recursive);
+			getInformation(reflectionClass, obj, recursive);
 		}
 	}
 	
@@ -68,6 +63,13 @@ public class Inspector {
 		System.out.println("Class Name: " + className);
 		setClassName(className);
 	}
+	public void getInformation(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+		getInterfaceNames(reflectClass, obj, recursive);
+		getClassConstructors(reflectClass);
+		getClassMethods(reflectClass);
+		getClassFields(reflectClass);
+		getClassFieldsValues(reflectClass, obj, recursive);
+	}
 	
 	// Get the name of the superclass
 	public void getSuperclassName(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
@@ -77,11 +79,7 @@ public class Inspector {
 		while (reflectionClassSuper != null) {
 			System.out.println("Superclass: "+reflectionClassSuper.getName());
 			System.out.println("\t>->->->->-> Traversing superclass: " + reflectionClassSuper.getName()+" >->->->->->");
-			getInterfaceNames(reflectionClassSuper, obj, recursive);
-			getClassConstructors(reflectionClassSuper);
-			getClassMethods(reflectionClassSuper);
-			getClassFields(reflectionClassSuper);
-			getClassFieldsValues(reflectionClassSuper, obj, recursive);
+			getInformation(reflectionClassSuper, obj, recursive);
 			System.out.println("\t<-<-<-<-<-< End of traversal of superclass: " + reflectionClassSuper.getName()+" <-<-<-<-<-<");
 			reflectionClassSuper = reflectionClassSuper.getSuperclass();		  
 		}
@@ -95,11 +93,7 @@ public class Inspector {
 		for(Class classInterface : interfaces){
 			System.out.println("Interface Name: " + classInterface.getName());
 			System.out.println("\t>>>>>>>>>>> Traversing Interface: " + classInterface.getName()+" >>>>>>>>>>>");
-			getInterfaceNames(classInterface, obj, recursive);
-			getClassConstructors(classInterface);
-			getClassMethods(classInterface);
-			getClassFields(classInterface);
-			getClassFieldsValues(classInterface, obj, recursive);
+			getInformation(classInterface, obj, recursive);
 			System.out.println("\t<<<<<<<<<<< End of traversal of interface: " + classInterface.getName()+" <<<<<<<<<<<");
 		}
 	}
@@ -262,10 +256,10 @@ public class Inspector {
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
 				}
-				//System.out.println("\t\tField Value ("+className+"): " + fieldValue); // Fix this, this should be the class that has those variables, not the type of variable 
-				setFieldValues(fieldValue.toString());
+				System.out.println("\t\tField Value ("+reflectClass+"): " + fieldValue); // Fix this, this should be the class that has those variables, not the type of variable 
 				if (recursive){
 					if (fieldValue != null && !fieldValue.getClass().isPrimitive()){
+						setFieldValues(fieldValue.toString());
 						// This code is responsible for recursing when a field is set to a class object. (Go into the class object)
 						if (Object.class.isAssignableFrom(classField.getType()) && !recursedClasses.contains(fieldType.getName()) ){
 							System.out.println("\t-------Field Value " + fieldName + " is a class object: "+fieldValue.getClass()+", RECURSING NOW");
