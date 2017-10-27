@@ -31,8 +31,7 @@ public class Inspector {
 				}else{
 					inspect(x, recursive);
 				}
-		        System.out.println("\tArray element = " +obj.toString());
-		        //inspect(arrayElement, recursive);
+		        System.out.println("\tArray reference: " + obj.toString() +"\n");
 		    }
 		}else{
 			Class reflectionClass = obj.getClass();
@@ -40,10 +39,12 @@ public class Inspector {
 			System.out.println("Inspecting Object: " + obj + " (recursive = "+recursive+")");
 			// Inspect current class
 			getClassName(reflectionClass);
+			// Get remaining information
 			getInformation(reflectionClass, obj, recursive);
 		}
 	}
 	
+	// Four methods below are used for testing 
 	private void setClassName(String cName){
 		classNameToTest = cName;
 	}
@@ -64,6 +65,7 @@ public class Inspector {
 		setClassName(className);
 	}
 	private void getInformation(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+		getSuperclassName(reflectClass, obj, recursive);
 		getInterfaceNames(reflectClass, obj, recursive);
 		getClassConstructors(reflectClass);
 		getClassMethods(reflectClass);
@@ -211,14 +213,14 @@ public class Inspector {
 			if (fieldType.isArray()){
 				// if it is an array, we need to figure out the type of array
 				Class arrType = fieldType.getComponentType();
-				System.out.println("\t\tArrType = "+arrType);
+				System.out.println("\t\tArray Type = "+arrType);
 				
 				if(!arrType.isPrimitive()){
 					// If array is not primitive, then it is objects. (Likely calling another class)
 					Object arrValues = null;
 					try {
 						arrValues = classField.get(obj);
-						System.out.println("\t\tArray Reference value = " +arrValues+"\n");
+						System.out.println("\t\tArray Reference Value = " +arrValues+"\n");
 						int length = Array.getLength(arrValues);
 						
 						
