@@ -13,10 +13,10 @@ public class Inspector {
 	 * setAccessible for private/protected/etc stuff
 	 * 
 	 */
-	public static ArrayList<String> recursedClasses = new ArrayList<String>();
-	public static ArrayList<String> recursedSuperClasses = new ArrayList<String>();
-	public String classNameToTest = "";
-	public String fieldValuesToTest = "";
+	private static ArrayList<String> recursedClasses = new ArrayList<String>();
+	private static ArrayList<String> recursedSuperClasses = new ArrayList<String>();
+	private String classNameToTest = "";
+	private String fieldValuesToTest = "";
 	
 	public void inspect(Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		
@@ -44,26 +44,26 @@ public class Inspector {
 		}
 	}
 	
-	public void setClassName(String cName){
+	private void setClassName(String cName){
 		classNameToTest = cName;
 	}
-	public String getClassName(){
+	private String getClassName(){
 		return classNameToTest;
 	}
-	public void setFieldValues(String fValues){
+	private void setFieldValues(String fValues){
 		fieldValuesToTest = fieldValuesToTest + " " +fValues;
 	}
-	public String getFieldValues(){
+	private String getFieldValues(){
 		return fieldValuesToTest;
 	}
 	
 	// Get the name of the class
-	public void getClassName(Class reflectClass){
+	private void getClassName(Class reflectClass){
 		String className = reflectClass.getName();
 		System.out.println("Class Name: " + className);
 		setClassName(className);
 	}
-	public void getInformation(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+	private void getInformation(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		getInterfaceNames(reflectClass, obj, recursive);
 		getClassConstructors(reflectClass);
 		getClassMethods(reflectClass);
@@ -72,7 +72,7 @@ public class Inspector {
 	}
 	
 	// Get the name of the superclass
-	public void getSuperclassName(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+	private void getSuperclassName(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		Class reflectionClassSuper = reflectClass.getSuperclass();
 		
 		// Traverse through the hierarchy of superclasses 
@@ -86,7 +86,7 @@ public class Inspector {
 	}
 	
 	// Get the name of the interfaces
-	public void getInterfaceNames(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+	private void getInterfaceNames(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		Class[] interfaces = reflectClass.getInterfaces();	
 		
 		// Traverse through the hierarchy of interfaces
@@ -99,7 +99,7 @@ public class Inspector {
 	}
 	
 	// Get the methods in class and their info
-	public void getClassMethods(Class reflectClass){
+	private void getClassMethods(Class reflectClass){
 		// Return the following:
 			// Name
 			// Exceptions thrown
@@ -141,7 +141,7 @@ public class Inspector {
 	}
 	
 	// Get the constructors in class and their info
-	public void getClassConstructors(Class reflectClass){
+	private void getClassConstructors(Class reflectClass){
 		// Print the following:
 			// Parameter Types
 			// Modifiers
@@ -168,7 +168,7 @@ public class Inspector {
 	}
 	
 	// Get the fields in the class and their info
-	public void getClassFields(Class reflectClass){
+	private void getClassFields(Class reflectClass){
 		// Print the following:
 			// Type
 			// Modifiers
@@ -194,7 +194,7 @@ public class Inspector {
 	}
 	
 	// Get the values of the fields within the class
-	public void getClassFieldsValues(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+	private void getClassFieldsValues(Class reflectClass, Object obj, boolean recursive) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
 		// Print current value of each field
 
 		// Get all fields (declared)
